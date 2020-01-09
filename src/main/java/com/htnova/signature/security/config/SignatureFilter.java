@@ -4,7 +4,6 @@ import com.htnova.signature.security.cachedrequest.CachedBodyHttpServletRequest;
 import com.htnova.signature.utils.SignatureUtil;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
@@ -12,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -20,14 +20,17 @@ import java.util.Collections;
 import java.util.List;
 
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
-@Component
+// TODO: 1/9/20 指定urlPatterns，只有设备接口才需要经过这个filter
+// 注意，需要配置@ServletComponentScan，这个filter才能启动
+@WebFilter(filterName = "SignatureFilter", urlPatterns = "/test/*")
 public class SignatureFilter extends OncePerRequestFilter {
 
+    // 请求必须传参有三个：s (签名) t （时间戳） d（设备ID）
     private static final String SIGN_PARAM = "s";
     private static final String TIMESTAMP_PARAM = "t";
     private static final String DEVICE_PARAM = "d";
 
-    private static final long TIME_THRESHOLD = 3000000;
+    private static final long TIME_THRESHOLD_IN_SECONDS = 15;
 
     private PathMatcher ignoreUrlMatcher = new AntPathMatcher();
 
@@ -42,9 +45,11 @@ public class SignatureFilter extends OncePerRequestFilter {
         String signature = cachedBodyHttpServletRequest.getParameter(SIGN_PARAM);
 
         if(StringUtils.isEmpty(deviceId) || StringUtils.isEmpty(timestamp) || StringUtils.isEmpty(signature)){
+            // TODO: 1/9/20 全局异常处理
             throw new IllegalArgumentException("参数不全");
         }
-        if(Math.abs(Long.parseLong(timestamp) - System.currentTimeMillis()) > TIME_THRESHOLD){
+        if(Math.abs(Long.parseLong(timestamp) - System.currentTimeMillis()) > TIME_THRESHOLD_IN_SECONDS * 1000){
+            // TODO: 1/9/20 全局异常处理
             throw new IllegalArgumentException("时间戳不正确");
         }
         // TODO: 1/8/20 get secretKey by deviceId
@@ -52,6 +57,7 @@ public class SignatureFilter extends OncePerRequestFilter {
         boolean result = SignatureUtil.getInstance(secretKey, Collections.singleton(SIGN_PARAM))
                 .verifySignature(cachedBodyHttpServletRequest, signature);
         if(!result){
+            // TODO: 1/9/20 全局异常处理
             throw new SecurityException("签名错误");
         }
         filterChain.doFilter(cachedBodyHttpServletRequest, httpServletResponse);
