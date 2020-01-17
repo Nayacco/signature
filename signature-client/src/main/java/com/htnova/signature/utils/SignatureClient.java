@@ -25,14 +25,22 @@ public final class SignatureClient {
 
     private SignatureClient(String secretKey, Set<String> ignoreParams) {
         this.secretKey = secretKey;
-        this.ignoreParams = ignoreParams;
+        if(ignoreParams != null){
+            this.ignoreParams = ignoreParams;
+        }
     }
 
     public static SignatureClient getInstance(String secretKey){
+        if(secretKey == null || secretKey.isEmpty()){
+            throw new IllegalArgumentException("secretKey is empty");
+        }
         return new SignatureClient(secretKey);
     }
 
     public static SignatureClient getInstance(String secretKey, Set<String> ignoreParams){
+        if(secretKey == null || secretKey.isEmpty()){
+            throw new IllegalArgumentException("secretKey is empty");
+        }
         return new SignatureClient(secretKey, ignoreParams);
     }
 
