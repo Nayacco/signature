@@ -1,7 +1,5 @@
 package com.htnova.signature.security.cachedrequest;
 
-import org.apache.commons.io.IOUtils;
-
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -16,8 +14,7 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
 
     public CachedBodyHttpServletRequest(HttpServletRequest request) throws IOException {
         super(request);
-        InputStream requestInputStream = request.getInputStream();
-        this.cachedBody = IOUtils.toByteArray(requestInputStream);
+        this.cachedBody = toByteArray(request.getInputStream());
     }
 
     @Override
@@ -31,5 +28,20 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
         // and return it
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(this.cachedBody);
         return new BufferedReader(new InputStreamReader(byteArrayInputStream));
+    }
+
+    private byte[] toByteArray(InputStream inputStream){
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        try {
+            int nRead;
+            byte[] data = new byte[1024];
+            while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+        }catch (Exception e){
+            // ignore
+        }
+        return buffer.toByteArray();
     }
 }
