@@ -1,4 +1,3 @@
-
 # HTTP请求签名校验机制
 
 ## 校验机制
@@ -23,7 +22,7 @@
 <dependency>
     <groupId>com.htnova</groupId>
     <artifactId>signature-client</artifactId>
-    <version>1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
@@ -42,7 +41,7 @@ String sign = SignatureClient.getInstance("112233").sign("POST", url,body);
 <dependency>
     <groupId>com.htnova</groupId>
     <artifactId>signature-server</artifactId>
-    <version>1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
